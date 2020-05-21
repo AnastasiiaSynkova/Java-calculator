@@ -12,9 +12,62 @@ class Operation {
 
 public class Calculator {
     
+    //основной метод вычисления
+    public static float mainCount(String str) throws Exception {
+        int k = str.length();
+        Stack<Float> digitStack = new Stack<Float>();
+        Stack<Operation> signStack = new Stack();
+        //разбираем строку на цифры и знаки и заполняем соответствующие стеки
+        parseString(str, digitStack, signStack);
+        //считаем что получилось в стеках и выполняем все операции
+        while (!signStack.empty()) {
+            countOne(signStack.pop(), digitStack);
+        }
+        //результат окажется на верхушке
+        if (digitStack.size() != 1)
+            throw new Exception("Неверное выражение");
+        return digitStack.pop();
+    }
 
+    public static boolean isDigit(char _ch){
+        return (_ch >= '0') && (_ch <= '9');
+    }
+    //считывание формулы с занесением в стек и параллельным вычислением
+    public static void parseString(String str, Stack<Float> digitStack, Stack<Operation> operationStack) throws Exception {
+        char ch;
+        float tmp; //временная переменная для получения числа из строки
+        int i = 0;
+        //формирует стеки чисел и знаков
+        do {
+            ch = str.charAt(i);
+            //если символ является цифрой
+            if (isDigit(ch)) {
+                tmp = Character.getNumericValue(ch); //получаем численное значение
+                digitStack.push(tmp); //и добавляем его в стек
+                //пока не встретили знак +-*/
+                while ( isDigit(ch) && (++i < str.length())) {
+                    ch = str.charAt(i);
+                    //если за цифрой тоже цифра -> двузначное число, достаем из стека первую цифру и кладем уже двузначное число
+                    if (isDigit(ch)) {
+                        digitStack.pop();
+                        tmp = tmp * 10 + Character.getNumericValue(ch);
+                        digitStack.push(tmp);
+                    }
+                    //если знак операции, то добавляем в стек знаков
+                    else {
+                        addOp(ch, operationStack, digitStack);
+                        i++;
+                    }
+                }
+            }
+            else {
+                addOp(ch, operationStack, digitStack);
+                i++;
+            }
+        } while (i < str.length());
+    }
+    
     //вспомогательные методы
-
     //выполняет одну операцию
     public static void countOne(Operation op,  Stack<Float> digitStack) throws Exception {
         float n1, n2;
